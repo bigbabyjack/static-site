@@ -22,3 +22,9 @@ class HTMLProps(StrEnum):
     LINK = "href"
     IMAGE_SRC = "src"
     ALT_TEXT = "alt"
+
+
+class MarkdownDelimiters(StrEnum):
+    BOLD = "**"
+    ITALICS = "*"
+    CODE = "`"

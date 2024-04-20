@@ -1,18 +1,9 @@
 from textnode import TextNode
 from htmlnode import LeafNode
-from constants import TextTypes, HTMLTags, HTMLProps
+from constants import TextTypes, HTMLTags, HTMLProps, MarkdownDelimiters
 
 
 def text_node_to_html_node(text_node: TextNode):
-    # VALID_TEXT_NODE_TYPES = [
-    #     TextTypes.TEXT,
-    #     TextTypes.BOLD,
-    #     TextTypes.ITALIC,
-    #     TextTypes.CODE,
-    #     TextTypes.LINK,
-    #     TextTypes.IMAGE,
-    # ]
-
     if text_node.text_type in TextTypes:
         raise Exception(f"TextNode of type {text_node.text_type} is not valid.")
 
@@ -42,11 +33,42 @@ def text_node_to_html_node(text_node: TextNode):
 
 
 def split_nodes_delimiter(
-    old_nodes: list[TextNode], delimiter: str, text_type
+    old_nodes: list[TextNode], delimiter: str, text_type: str
 ) -> list[TextNode]:
-    # new_nodes = []
-    # for node in old_nodes:
-    raise NotImplementedError("xD")
+    if text_type not in TextTypes:
+        raise ValueError(f"Invalid text type: {text_type}")
+    if delimiter not in MarkdownDelimiters:
+        raise ValueError(f"Invalid markdown delimiter: {delimiter}")
+
+    DELIMITER_TO_TEXT_TYPE = {
+        "**": TextTypes.BOLD,
+        "*": TextTypes.ITALIC,
+        "`": TextTypes.CODE,
+    }
+
+    new_nodes: list[TextNode] = []
+    # iterate through each node
+    for old_node in old_nodes:
+        # if the node is not a text node, add as is
+        if old_node.text_type != TextTypes.TEXT:
+            new_nodes.append(old_node)
+        # if we have a text node
+        else:
+            # split the node text
+            split_old_node_text = old_node.text.split(delimiter)
+            # check for invalid markdown format
+            if len(split_old_node_text) % 2 == 0:
+                raise ValueError("Invalid markdown syntax: Missing closing delimiter.")
+            for i, text in enumerate(split_old_node_text):
+                # only odd indices will contain the new Node type
+                if i % 2 == 0:
+                    new_nodes.append(TextNode(text=text, text_type=TextTypes.TEXT))
+                else:
+                    new_nodes.append(
+                        TextNode(text=text, text_type=DELIMITER_TO_TEXT_TYPE[delimiter])
+                    )
+
+    return new_nodes
 
 
 def main():
