@@ -5,6 +5,7 @@ from src.node_utils import (
     split_nodes_delimiter,
     split_nodes_image,
     split_nodes_link,
+    text_to_textnodes,
 )
 from src.constants import MarkdownDelimiters, TextTypes
 from src.textnode import TextNode
@@ -141,7 +142,7 @@ class TestSplitNodesImage(unittest.TestCase):
 class TestSplitNodesLink(unittest.TestCase):
     def test_split_nodes_link(self):
         node = TextNode(
-            "This is text with an [link](https://www.example.com/text) and another [second link](https://example.com/example)",
+            "This is text with an [link](https://www.example.com/text) and another [second link](https://example.com/example) and here is more text.",
             TextTypes.TEXT,
         )
 
@@ -160,6 +161,32 @@ class TestSplitNodesLink(unittest.TestCase):
                     TextTypes.LINK,
                     "https://example.com/example",
                 ),
+                TextNode(" and here is more text.", TextTypes.TEXT),
+            ],
+        )
+
+
+class TestTextToTextNodes(unittest.TestCase):
+    def test_text_to_textnodes(self):
+        text = "This is **text** with an *italic* word and a `code block` and an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and a [link](https://boot.dev)"
+
+        self.assertEqual(
+            text_to_textnodes(text),
+            [
+                TextNode("This is ", TextTypes.TEXT),
+                TextNode("text", TextTypes.BOLD),
+                TextNode(" with an ", TextTypes.TEXT),
+                TextNode("italic", TextTypes.ITALIC),
+                TextNode(" word and a ", TextTypes.TEXT),
+                TextNode("code block", TextTypes.CODE),
+                TextNode(" and an ", TextTypes.TEXT),
+                TextNode(
+                    "image",
+                    TextTypes.IMAGE,
+                    "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png",
+                ),
+                TextNode(" and a ", TextTypes.TEXT),
+                TextNode("link", TextTypes.LINK, "https://boot.dev"),
             ],
         )
 

@@ -6,7 +6,7 @@ from src.textnode import TextNode
 from src.htmlnode import LeafNode
 
 
-def text_node_to_html_node(text_node: TextNode):
+def text_node_to_html_node(text_node: TextNode) -> LeafNode:
     if text_node.text_type in TextTypes:
         raise Exception(f"TextNode of type {text_node.text_type} is not valid.")
 
@@ -94,17 +94,20 @@ def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
             new_nodes.append(node)
         else:
             for image_tup in extracted_images:
-                split_node_text = node.text.split(f"![{image_tup[0]}]({image_tup[1]})")
+                split_node_text = node.text.split(
+                    f"![{image_tup[0]}]({image_tup[1]})", 1
+                )
                 if split_node_text[0] != "":
                     new_nodes.append(TextNode(split_node_text[0], TextTypes.TEXT))
                 new_nodes.append(TextNode(image_tup[0], TextTypes.IMAGE, image_tup[1]))
                 node.text = split_node_text[1]
+            if node.text != "":
+                new_nodes.append(TextNode(node.text, TextTypes.TEXT))
 
     return new_nodes
 
 
-# TODO: Implement function
-def split_nodes_link(old_nodes):
+def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
     new_nodes = []
     for node in old_nodes:
         extracted_links = extract_markdown_links(node.text)
@@ -112,10 +115,31 @@ def split_nodes_link(old_nodes):
             new_nodes.append(node)
         else:
             for image_tup in extracted_links:
-                split_node_text = node.text.split(f"[{image_tup[0]}]({image_tup[1]})")
+                split_node_text = node.text.split(
+                    f"[{image_tup[0]}]({image_tup[1]})", 1
+                )
                 if split_node_text[0] != "":
                     new_nodes.append(TextNode(split_node_text[0], TextTypes.TEXT))
                 new_nodes.append(TextNode(image_tup[0], TextTypes.LINK, image_tup[1]))
                 node.text = split_node_text[1]
+            if node.text != "":
+                new_nodes.append(TextNode(node.text, TextTypes.TEXT))
 
     return new_nodes
+
+
+def text_to_textnodes(text: str) -> list[TextNode]:
+    input_textnode = TextNode(text, TextTypes.TEXT)
+    code_splits = split_nodes_delimiter(
+        [input_textnode], MarkdownDelimiters.CODE, TextTypes.TEXT
+    )
+    bold_splits = split_nodes_delimiter(
+        code_splits, MarkdownDelimiters.BOLD, TextTypes.TEXT
+    )
+    italic_splits = split_nodes_delimiter(
+        bold_splits, MarkdownDelimiters.ITALIC, TextTypes.TEXT
+    )
+    image_splits = split_nodes_image(italic_splits)
+    link_splits = split_nodes_link(image_splits)
+
+    return link_splits
