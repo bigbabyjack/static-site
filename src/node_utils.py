@@ -1,4 +1,5 @@
 import re
+from typing import Tuple
 
 from src.constants import HTMLTags, HTMLProps, TextTypes, MarkdownDelimiters
 from src.textnode import TextNode
@@ -77,9 +78,31 @@ def split_nodes_delimiter(
     return new_nodes
 
 
-def extract_markdown_images(text: str) -> list:
+def extract_markdown_images(text: str) -> list[Tuple[str, str]]:
     return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
 
 
-def extract_markdown_links(text: str) -> list:
+def extract_markdown_links(text: str) -> list[Tuple[str, str]]:
     return re.findall(r"\[(.*?)\]\((.*?)\)", text)
+
+
+def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
+    new_nodes = []
+    for node in old_nodes:
+        extracted_images = extract_markdown_images(node.text)
+        if len(extracted_images) == 0:
+            new_nodes.append(node)
+        else:
+            for image_tup in extracted_images:
+                split_node_text = node.text.split(f"![{image_tup[0]}]({image_tup[1]})")
+                if split_node_text[0] != "":
+                    new_nodes.append(TextNode(split_node_text[0], TextTypes.TEXT))
+                new_nodes.append(TextNode(image_tup[0], TextTypes.IMAGE, image_tup[1]))
+                node.text = split_node_text[1]
+
+    return new_nodes
+
+
+# TODO: Implement function
+def split_nodes_link(old_nodes):
+    pass

@@ -3,6 +3,8 @@ from src.node_utils import (
     extract_markdown_images,
     extract_markdown_links,
     split_nodes_delimiter,
+    split_nodes_image,
+    split_nodes_link,
 )
 from src.constants import MarkdownDelimiters, TextTypes
 from src.textnode import TextNode
@@ -96,6 +98,8 @@ class TestExtractMarkdownImages(unittest.TestCase):
             ],
         )
 
+
+class TestExtractMarkdownLinks(unittest.TestCase):
     def test_extract_markdown_links(self):
         text = "This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
 
@@ -108,8 +112,30 @@ class TestExtractMarkdownImages(unittest.TestCase):
         )
 
 
-class TestExtractMarkdownLinks(unittest.TestCase):
-    pass
+class TestSplitNodesImage(unittest.TestCase):
+    def test_split_nodes_image(self):
+        node = TextNode(
+            "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and another ![second image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png)",
+            TextTypes.TEXT,
+        )
+
+        self.assertEqual(
+            split_nodes_image([node]),
+            [
+                TextNode("This is text with an ", TextTypes.TEXT),
+                TextNode(
+                    "image",
+                    TextTypes.IMAGE,
+                    "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png",
+                ),
+                TextNode(" and another ", TextTypes.TEXT),
+                TextNode(
+                    "second image",
+                    TextTypes.IMAGE,
+                    "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png",
+                ),
+            ],
+        )
 
 
 if __name__ == "__main__":
