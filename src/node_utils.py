@@ -34,7 +34,6 @@ def text_node_to_html_node(text_node: TextNode):
         )
 
 
-# TODO: fix case where the delimiter is at the beginning/end
 def split_nodes_delimiter(
     old_nodes: list[TextNode], delimiter: str, text_type: str
 ) -> list[TextNode]:
