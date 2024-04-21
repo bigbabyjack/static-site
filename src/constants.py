@@ -26,5 +26,5 @@ class HTMLProps(StrEnum):
 
 class MarkdownDelimiters(StrEnum):
     BOLD = "**"
-    ITALICS = "*"
+    ITALIC = "*"
     CODE = "`"

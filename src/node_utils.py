@@ -1,3 +1,5 @@
+import re
+
 from src.constants import HTMLTags, HTMLProps, TextTypes, MarkdownDelimiters
 from src.textnode import TextNode
 from src.htmlnode import LeafNode
@@ -32,6 +34,7 @@ def text_node_to_html_node(text_node: TextNode):
         )
 
 
+# TODO: fix case where the delimiter is at the beginning/end
 def split_nodes_delimiter(
     old_nodes: list[TextNode], delimiter: str, text_type: str
 ) -> list[TextNode]:
@@ -60,8 +63,12 @@ def split_nodes_delimiter(
             if len(split_old_node_text) % 2 == 0:
                 raise ValueError("Invalid markdown syntax: Missing closing delimiter.")
             for i, text in enumerate(split_old_node_text):
+                # only consider nonempty strings
+                if text == "":
+                    continue
                 # only odd indices will contain the new Node type
                 if i % 2 == 0:
+                    # make sure it isn't the empty string
                     new_nodes.append(TextNode(text=text, text_type=TextTypes.TEXT))
                 else:
                     new_nodes.append(
@@ -69,3 +76,11 @@ def split_nodes_delimiter(
                     )
 
     return new_nodes
+
+
+def extract_markdown_images(text: str) -> list:
+    return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
+
+
+def extract_markdown_links(text: str) -> list:
+    return re.findall(r"\[(.*?)\]\((.*?)\)", text)
