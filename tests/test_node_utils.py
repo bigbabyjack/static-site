@@ -138,5 +138,31 @@ class TestSplitNodesImage(unittest.TestCase):
         )
 
 
+class TestSplitNodesLink(unittest.TestCase):
+    def test_split_nodes_link(self):
+        node = TextNode(
+            "This is text with an [link](https://www.example.com/text) and another [second link](https://example.com/example)",
+            TextTypes.TEXT,
+        )
+
+        self.assertEqual(
+            split_nodes_link([node]),
+            [
+                TextNode("This is text with an ", TextTypes.TEXT),
+                TextNode(
+                    "link",
+                    TextTypes.LINK,
+                    "https://www.example.com/text",
+                ),
+                TextNode(" and another ", TextTypes.TEXT),
+                TextNode(
+                    "second link",
+                    TextTypes.LINK,
+                    "https://example.com/example",
+                ),
+            ],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
