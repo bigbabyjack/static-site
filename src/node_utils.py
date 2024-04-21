@@ -143,3 +143,7 @@ def text_to_textnodes(text: str) -> list[TextNode]:
     link_splits = split_nodes_link(image_splits)
 
     return link_splits
+
+
+def markdown_to_blocks(text: str) -> list[str]:
+    return list(filter(lambda x: x != "", map(lambda x: x.strip("\n").strip(), text.split("\n\n"))))

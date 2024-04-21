@@ -6,6 +6,7 @@ from src.node_utils import (
     split_nodes_image,
     split_nodes_link,
     text_to_textnodes,
+    markdown_to_blocks,
 )
 from src.constants import MarkdownDelimiters, TextTypes
 from src.textnode import TextNode
@@ -187,6 +188,30 @@ class TestTextToTextNodes(unittest.TestCase):
                 ),
                 TextNode(" and a ", TextTypes.TEXT),
                 TextNode("link", TextTypes.LINK, "https://boot.dev"),
+            ],
+        )
+
+
+class TestMarkdownToBlocks(unittest.TestCase):
+    def test_markdown_to_blocks(self):
+        text = """# This is a heading\n\nThis is a paragraph of text. It has some **bold** and *italic* words inside of it.\n\n* This is a list item\n* This is another list item"""
+        self.assertEqual(
+            markdown_to_blocks(text),
+            [
+                "# This is a heading",
+                "This is a paragraph of text. It has some **bold** and *italic* words inside of it.",
+                "* This is a list item\n* This is another list item",
+            ],
+        )
+
+    def test_markdown_to_blocks_extra_lines(self):
+        text = """\n\n\n# This is a heading\n\n\n\n\n\nThis is a paragraph of text. It has some **bold** and *italic* words inside of it.\n\n\n\n\n* This is a list item\n* This is another list item"""
+        self.assertEqual(
+            markdown_to_blocks(text),
+            [
+                "# This is a heading",
+                "This is a paragraph of text. It has some **bold** and *italic* words inside of it.",
+                "* This is a list item\n* This is another list item",
             ],
         )
 
