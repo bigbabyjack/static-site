@@ -1,10 +1,12 @@
 import unittest
 from src.node_utils import (
     block_to_block_type,
+    block_to_html_node,
     code_block_to_html_node,
     extract_markdown_images,
     extract_markdown_links,
     heading_block_to_html_node,
+    paragraph_block_to_html_node,
     split_nodes_delimiter,
     split_nodes_image,
     split_nodes_link,
@@ -257,39 +259,29 @@ class TestBlockToBlockType(unittest.TestCase):
 
 
 class TestBlockToHTMLNode(unittest.TestCase):
-    def test_heading_to_html_node(self):
-        block = "### this is a heading"
+    def test_block_to_html_node(self):
+        block = "# This is a heading"
         self.assertEqual(
-            heading_block_to_html_node(block),
-            HTMLNode(tag="h3", value="this is a heading"),
+            block_to_html_node(block, MarkdownBlockType.HEADING),
+            HTMLNode(tag=HTMLTags.HEADING_1, value="This is a heading"),
         )
 
-    def test_code_block_to_html_node(self):
-        block = "```\nthis is a code block\n```"
+        block = "1. this is an ordered list\n2. you can tell by how it is\n3. isn't that cool"
         self.assertEqual(
-            code_block_to_html_node(block),
+            block_to_html_node(block, MarkdownBlockType.ORDERED_LIST),
             HTMLNode(
-                tag=HTMLTags.PRE,
+                tag=HTMLTags.ORDERED_LIST,
                 children=[
-                    HTMLNode(tag="code", value="this is a code block"),
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="this is an ordered list"),
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="you can tell by how it is"),
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="isn't that cool"),
                 ],
             ),
         )
 
-    def test_quote_block_to_html_node(self):
-        block = "> this is a quote block\n> every line has\n> this arrow in front"
-        self.assertEqual(
-            quote_block_to_html_node(block),
-            HTMLNode(
-                tag=HTMLTags.BLOCKQUOTE,
-                value="this is a quote block\nevery line has\nthis arrow in front",
-            ),
-        )
-
-    def test_ul_block_to_html_node(self):
         block = "* this is an unordered list\n- you can tell by how it is\n* isn't that cool"
         self.assertEqual(
-            ul_block_to_html_node(block),
+            block_to_html_node(block, MarkdownBlockType.UNORDERED_LIST),
             HTMLNode(
                 tag=HTMLTags.UNORDERED_LIST,
                 children=[
@@ -300,16 +292,37 @@ class TestBlockToHTMLNode(unittest.TestCase):
             ),
         )
 
-    def test_ol_block_to_html_node(self):
-        block = "1. this is an ordered list\n2. you can tell by how it is\n3. isn't that cool"
+        block = "> this is a quote block\n> every line has\n> this arrow in front"
         self.assertEqual(
-            ol_block_to_html_node(block),
+            block_to_html_node(block, MarkdownBlockType.QUOTE),
             HTMLNode(
-                tag=HTMLTags.ORDERED_LIST,
+                tag=HTMLTags.BLOCKQUOTE,
+                value="this is a quote block\nevery line has\nthis arrow in front",
+            ),
+        )
+
+        block = "this is just some text"
+        self.assertEqual(
+            block_to_html_node(block, MarkdownBlockType.PARAGRAPH),
+            HTMLNode(
+                tag=HTMLTags.PARAGRAPH,
+                value=block,
+            ),
+        )
+
+        block = "### this is a heading"
+        self.assertEqual(
+            block_to_html_node(block, MarkdownBlockType.HEADING),
+            HTMLNode(tag="h3", value="this is a heading"),
+        )
+
+        block = "```\nthis is a code block\n```"
+        self.assertEqual(
+            block_to_html_node(block, MarkdownBlockType.CODE),
+            HTMLNode(
+                tag=HTMLTags.PRE,
                 children=[
-                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="this is an ordered list"),
-                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="you can tell by how it is"),
-                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="isn't that cool"),
+                    HTMLNode(tag="code", value="this is a code block"),
                 ],
             ),
         )

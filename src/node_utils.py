@@ -171,7 +171,7 @@ def markdown_to_blocks(text: str) -> list[str]:
     return new_blocks
 
 
-# TODO: Need to check if ordered_list numbers are valid
+# TODO: check if ordered_list numbers are valid
 def block_to_block_type(block: str) -> str:
     # check for code block
     if block.startswith("```") and block.endswith("```"):
@@ -239,5 +239,30 @@ def heading_block_to_html_node(block: str) -> HTMLNode:
     )
 
 
+def paragraph_block_to_html_node(block: str) -> HTMLNode:
+    return HTMLNode(
+        tag=HTMLTags.PARAGRAPH,
+        value=block,
+    )
+
+
+def block_to_html_node(block: str, block_type: str) -> HTMLNode:
+    if block_type == MarkdownBlockType.QUOTE:
+        return quote_block_to_html_node(block)
+    if block_type == MarkdownBlockType.UNORDERED_LIST:
+        return ul_block_to_html_node(block)
+    if block_type == MarkdownBlockType.ORDERED_LIST:
+        return ol_block_to_html_node(block)
+    if block_type == MarkdownBlockType.CODE:
+        return code_block_to_html_node(block)
+    if block_type == MarkdownBlockType.HEADING:
+        return heading_block_to_html_node(block)
+    if block_type == MarkdownBlockType.PARAGRAPH:
+        return paragraph_block_to_html_node(block)
+
+    raise ValueError(f"Invalid block type {block_type}")
+
+
+# TODO: Implement using helper functions
 def markdown_to_html_node(markdown: str) -> HTMLNode:
     pass
