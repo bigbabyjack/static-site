@@ -1,16 +1,19 @@
 import unittest
 from src.node_utils import (
     block_to_block_type,
+    code_block_to_html_node,
     extract_markdown_images,
     extract_markdown_links,
+    heading_block_to_html_node,
     split_nodes_delimiter,
     split_nodes_image,
     split_nodes_link,
     text_to_textnodes,
     markdown_to_blocks,
 )
-from src.constants import MarkdownBlockType, MarkdownDelimiters, TextTypes
+from src.constants import MarkdownBlockType, MarkdownDelimiters, TextTypes, HTMLTags
 from src.textnode import TextNode
+from src.htmlnode import HTMLNode
 
 
 class TestSplitNodesDelimiter(unittest.TestCase):
@@ -248,6 +251,27 @@ class TestBlockToBlockType(unittest.TestCase):
         block = "```\nthis is a code block\n```"
 
         self.assertEqual(block_to_block_type(block), MarkdownBlockType.CODE)
+
+
+class TestBlockToHTMLNode(unittest.TestCase):
+    def test_heading_to_html_node(self):
+        block = "### this is a heading"
+        self.assertEqual(
+            heading_block_to_html_node(block),
+            HTMLNode(tag="h3", value="this is a heading"),
+        )
+
+    def test_code_block_to_html_node(self):
+        block = "```\nthis is a code block\n```"
+        self.assertEqual(
+            code_block_to_html_node(block),
+            HTMLNode(
+                tag=HTMLTags.PRE,
+                children=[
+                    HTMLNode(tag="code", value="this is a code block"),
+                ],
+            ),
+        )
 
 
 if __name__ == "__main__":
