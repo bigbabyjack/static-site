@@ -190,7 +190,10 @@ def block_to_block_type(block: str) -> str:
 
 
 def quote_block_to_html_node(block: str) -> HTMLNode:
-    pass
+    return HTMLNode(
+        tag=HTMLTags.BLOCKQUOTE,
+        value="\n".join(map(lambda x: x.lstrip(">").lstrip(), block.split("\n"))),
+    )
 
 
 def ul_block_to_html_node(block: str) -> HTMLNode:

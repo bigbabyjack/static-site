@@ -10,6 +10,7 @@ from src.node_utils import (
     split_nodes_link,
     text_to_textnodes,
     markdown_to_blocks,
+    quote_block_to_html_node,
 )
 from src.constants import MarkdownBlockType, MarkdownDelimiters, TextTypes, HTMLTags
 from src.textnode import TextNode
@@ -270,6 +271,16 @@ class TestBlockToHTMLNode(unittest.TestCase):
                 children=[
                     HTMLNode(tag="code", value="this is a code block"),
                 ],
+            ),
+        )
+
+    def test_quote_block_to_html_node(self):
+        block = "> this is a quote block\n> every line has\n> this arrow in front"
+        self.assertEqual(
+            quote_block_to_html_node(block),
+            HTMLNode(
+                tag=HTMLTags.BLOCKQUOTE,
+                value="this is a quote block\nevery line has\nthis arrow in front",
             ),
         )
 

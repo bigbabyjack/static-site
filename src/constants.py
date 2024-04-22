@@ -28,6 +28,7 @@ class HTMLTags(StrEnum):
     UNORDERED_LIST_BLOCK = "ul"
     LIST_ITEM = "li"
     PRE = "pre"
+    BLOCKQUOTE = "blockquote"
 
 
 class HTMLProps(StrEnum):
