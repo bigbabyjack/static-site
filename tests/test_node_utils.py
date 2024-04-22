@@ -11,6 +11,8 @@ from src.node_utils import (
     text_to_textnodes,
     markdown_to_blocks,
     quote_block_to_html_node,
+    ul_block_to_html_node,
+    ol_block_to_html_node,
 )
 from src.constants import MarkdownBlockType, MarkdownDelimiters, TextTypes, HTMLTags
 from src.textnode import TextNode
@@ -281,6 +283,34 @@ class TestBlockToHTMLNode(unittest.TestCase):
             HTMLNode(
                 tag=HTMLTags.BLOCKQUOTE,
                 value="this is a quote block\nevery line has\nthis arrow in front",
+            ),
+        )
+
+    def test_ul_block_to_html_node(self):
+        block = "* this is an unordered list\n- you can tell by how it is\n* isn't that cool"
+        self.assertEqual(
+            ul_block_to_html_node(block),
+            HTMLNode(
+                tag=HTMLTags.UNORDERED_LIST,
+                children=[
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="this is an unordered list"),
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="you can tell by how it is"),
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="isn't that cool"),
+                ],
+            ),
+        )
+
+    def test_ol_block_to_html_node(self):
+        block = "1. this is an ordered list\n2. you can tell by how it is\n3. isn't that cool"
+        self.assertEqual(
+            ol_block_to_html_node(block),
+            HTMLNode(
+                tag=HTMLTags.ORDERED_LIST,
+                children=[
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="this is an ordered list"),
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="you can tell by how it is"),
+                    HTMLNode(tag=HTMLTags.LIST_ITEM, value="isn't that cool"),
+                ],
             ),
         )
 

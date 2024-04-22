@@ -197,11 +197,27 @@ def quote_block_to_html_node(block: str) -> HTMLNode:
 
 
 def ul_block_to_html_node(block: str) -> HTMLNode:
-    pass
+    return HTMLNode(
+        tag=HTMLTags.UNORDERED_LIST,
+        children=[
+            HTMLNode(tag=HTMLTags.LIST_ITEM, value=line)
+            for line in map(
+                lambda x: x.lstrip("*").lstrip("-").lstrip(), block.split("\n")
+            )
+        ],
+    )
 
 
 def ol_block_to_html_node(block: str) -> HTMLNode:
-    pass
+    return HTMLNode(
+        tag=HTMLTags.ORDERED_LIST,
+        children=[
+            HTMLNode(tag=HTMLTags.LIST_ITEM, value=line)
+            for line in map(
+                lambda x: re.sub(r"^[0-9]+\.\s", "", x).lstrip(), block.split("\n")
+            )
+        ],
+    )
 
 
 def code_block_to_html_node(block: str) -> HTMLNode:
