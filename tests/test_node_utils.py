@@ -1,5 +1,6 @@
 import unittest
 from src.node_utils import (
+    block_to_block_type,
     extract_markdown_images,
     extract_markdown_links,
     split_nodes_delimiter,
@@ -8,7 +9,7 @@ from src.node_utils import (
     text_to_textnodes,
     markdown_to_blocks,
 )
-from src.constants import MarkdownDelimiters, TextTypes
+from src.constants import MarkdownBlockType, MarkdownDelimiters, TextTypes
 from src.textnode import TextNode
 
 
@@ -214,6 +215,39 @@ class TestMarkdownToBlocks(unittest.TestCase):
                 "* This is a list item\n* This is another list item",
             ],
         )
+
+    def test_markdown_to_blocks_code(self):
+        text = "This is a paragraph\n\n# here is a heading\n\n```\nThis is some example code\n```\n\n and here is more paragraph\n\n* this is a list item\n* and another list item"
+        self.assertEqual(
+            markdown_to_blocks(text),
+            [
+                "This is a paragraph",
+                "# here is a heading",
+                "```\nThis is some example code\n```",
+                "and here is more paragraph",
+                "* this is a list item\n* and another list item",
+            ],
+        )
+
+
+class TestBlockToBlockType(unittest.TestCase):
+    def test_block_to_block_type(self):
+        block = "# This is a heading"
+
+        self.assertEqual(
+            block_to_block_type(block),
+            MarkdownBlockType.HEADING,
+        )
+
+    def test_block_to_block_type_invalid(self):
+        block = "#this is not a heading"
+
+        self.assertEqual(block_to_block_type(block), MarkdownBlockType.PARAGRAPH)
+
+    def test_block_to_block_type_code(self):
+        block = "```\nthis is a code block\n```"
+
+        self.assertEqual(block_to_block_type(block), MarkdownBlockType.CODE)
 
 
 if __name__ == "__main__":

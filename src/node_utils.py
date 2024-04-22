@@ -1,7 +1,14 @@
 import re
 from typing import Tuple
 
-from src.constants import HTMLTags, HTMLProps, TextTypes, MarkdownDelimiters
+from src.constants import (
+    HTMLTags,
+    HTMLProps,
+    MarkdownBlockRegexPattern,
+    TextTypes,
+    MarkdownDelimiters,
+    MarkdownBlockType,
+)
 from src.textnode import TextNode
 from src.htmlnode import LeafNode
 
@@ -146,4 +153,38 @@ def text_to_textnodes(text: str) -> list[TextNode]:
 
 
 def markdown_to_blocks(text: str) -> list[str]:
-    return list(filter(lambda x: x != "", map(lambda x: x.strip("\n").strip(), text.split("\n\n"))))
+    split_code_blocks = text.split("```")
+    new_blocks = []
+    for i, block in enumerate(split_code_blocks):
+        if i % 2 == 1:
+            new_blocks.append(f"```{block}```")
+        else:
+            new_blocks.extend(
+                list(
+                    filter(
+                        lambda x: x != "",
+                        map(lambda x: x.strip("\n").strip(), block.split("\n\n")),
+                    )
+                )
+            )
+
+    return new_blocks
+
+
+# TODO: Need to check if ordered_list numbers are valid
+def block_to_block_type(block: str) -> str:
+    # check for code block
+    if block.startswith("```") and block.endswith("```"):
+        return MarkdownBlockType.CODE
+    else:
+        first_word = block.split(" ")[0]
+        if re.match(MarkdownBlockRegexPattern.HEADING, first_word):
+            return MarkdownBlockType.HEADING
+        elif re.match(MarkdownBlockRegexPattern.QUOTE, first_word):
+            return MarkdownBlockType.QUOTE
+        elif re.match(MarkdownBlockRegexPattern.UNORDERED_LIST, first_word):
+            return MarkdownBlockType.UNORDERED_LIST
+        elif re.match(MarkdownBlockRegexPattern.ORDERED_LIST, first_word):
+            return MarkdownBlockType.ORDERED_LIST
+        else:
+            return MarkdownBlockType.PARAGRAPH
