@@ -10,15 +10,13 @@ from src.constants import (
     MarkdownBlockType,
 )
 from src.textnode import TextNode
-from src.htmlnode import LeafNode
+from src.htmlnode import LeafNode, HTMLNode
 
 
 def text_node_to_html_node(text_node: TextNode) -> LeafNode:
     if text_node.text_type in TextTypes:
         raise Exception(f"TextNode of type {text_node.text_type} is not valid.")
 
-    if text_node.text_type == TextTypes.TEXT:
-        return LeafNode(value=text_node.text)
     if text_node.text_type == TextTypes.BOLD:
         return LeafNode(tag=HTMLTags.BOLD, value=text_node.text)
     if text_node.text_type == TextTypes.ITALIC:
@@ -40,6 +38,8 @@ def text_node_to_html_node(text_node: TextNode) -> LeafNode:
                 HTMLProps.ALT_TEXT: text_node.text,
             },
         )
+    else:
+        return LeafNode(value=text_node.text)
 
 
 def split_nodes_delimiter(
@@ -62,6 +62,7 @@ def split_nodes_delimiter(
         # if the node is not a text node, add as is
         if old_node.text_type != TextTypes.TEXT:
             new_nodes.append(old_node)
+            continue
         # if we have a text node
         else:
             # split the node text
@@ -171,20 +172,104 @@ def markdown_to_blocks(text: str) -> list[str]:
     return new_blocks
 
 
-# TODO: Need to check if ordered_list numbers are valid
+# TODO: check if ordered_list numbers are valid
 def block_to_block_type(block: str) -> str:
     # check for code block
     if block.startswith("```") and block.endswith("```"):
         return MarkdownBlockType.CODE
     else:
-        first_word = block.split(" ")[0]
-        if re.match(MarkdownBlockRegexPattern.HEADING, first_word):
+        if re.match(MarkdownBlockRegexPattern.HEADING, block):
             return MarkdownBlockType.HEADING
-        elif re.match(MarkdownBlockRegexPattern.QUOTE, first_word):
+        elif re.match(MarkdownBlockRegexPattern.QUOTE, block):
             return MarkdownBlockType.QUOTE
-        elif re.match(MarkdownBlockRegexPattern.UNORDERED_LIST, first_word):
+        elif re.match(MarkdownBlockRegexPattern.UNORDERED_LIST, block):
             return MarkdownBlockType.UNORDERED_LIST
-        elif re.match(MarkdownBlockRegexPattern.ORDERED_LIST, first_word):
+        elif re.match(MarkdownBlockRegexPattern.ORDERED_LIST, block):
             return MarkdownBlockType.ORDERED_LIST
         else:
             return MarkdownBlockType.PARAGRAPH
+
+
+def quote_block_to_html_node(block: str) -> HTMLNode:
+    return HTMLNode(
+        tag=HTMLTags.BLOCKQUOTE,
+        value="\n".join(map(lambda x: x.lstrip(">").lstrip(), block.split("\n"))),
+    )
+
+
+def ul_block_to_html_node(block: str) -> HTMLNode:
+    return HTMLNode(
+        tag=HTMLTags.UNORDERED_LIST,
+        children=[
+            HTMLNode(tag=HTMLTags.LIST_ITEM, value=line)
+            for line in map(
+                lambda x: x.lstrip("*").lstrip("-").lstrip(), block.split("\n")
+            )
+        ],
+    )
+
+
+def ol_block_to_html_node(block: str) -> HTMLNode:
+    return HTMLNode(
+        tag=HTMLTags.ORDERED_LIST,
+        children=[
+            HTMLNode(tag=HTMLTags.LIST_ITEM, value=line)
+            for line in map(
+                lambda x: re.sub(r"^[0-9]+\.\s", "", x).lstrip(), block.split("\n")
+            )
+        ],
+    )
+
+
+def code_block_to_html_node(block: str) -> HTMLNode:
+    return HTMLNode(
+        tag=HTMLTags.PRE,
+        children=[
+            HTMLNode(
+                tag=HTMLTags.CODE,
+                value=block.lstrip("```").rstrip("```").strip(),
+            )
+        ],
+    )
+
+
+def heading_block_to_html_node(block: str) -> HTMLNode:
+    return HTMLNode(
+        tag=f"h{len(re.findall(MarkdownBlockRegexPattern.HEADING, block)[0]) - 1}",
+        value=block.lstrip(MarkdownDelimiters.HEADING).lstrip(),
+    )
+
+
+def paragraph_block_to_html_node(block: str) -> HTMLNode:
+    return HTMLNode(
+        tag=HTMLTags.PARAGRAPH,
+        value=block,
+    )
+
+
+def block_to_html_node(block: str) -> HTMLNode:
+    block_type = block_to_block_type(block)
+    if block_type == MarkdownBlockType.QUOTE:
+        return quote_block_to_html_node(block)
+    if block_type == MarkdownBlockType.UNORDERED_LIST:
+        return ul_block_to_html_node(block)
+    if block_type == MarkdownBlockType.ORDERED_LIST:
+        return ol_block_to_html_node(block)
+    if block_type == MarkdownBlockType.CODE:
+        return code_block_to_html_node(block)
+    if block_type == MarkdownBlockType.HEADING:
+        return heading_block_to_html_node(block)
+    if block_type == MarkdownBlockType.PARAGRAPH:
+        return paragraph_block_to_html_node(block)
+
+    raise ValueError(f"Invalid block type {block_type}")
+
+
+# TODO: Implement using helper functions
+def markdown_to_html_node(markdown: str) -> HTMLNode:
+    blocks = markdown_to_blocks(markdown)
+    children = []
+    for block in blocks:
+        children.append(block_to_html_node(block))
+
+    return HTMLNode(tag="div", children=children)

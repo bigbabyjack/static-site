@@ -1,7 +1,11 @@
+import os
+import shutil
+
 from src.textnode import TextNode
 from src.htmlnode import LeafNode
 from src.constants import TextTypes, HTMLTags, HTMLProps, MarkdownDelimiters
 from src.node_utils import (
+    ol_block_to_html_node,
     split_nodes_delimiter,
     split_nodes_image,
     text_to_textnodes,
@@ -9,9 +13,21 @@ from src.node_utils import (
 )
 
 
+def copy_contents_from(src: str, dst: str) -> None:
+    if not os.path.exists(dst):
+        os.mkdir(dst)
+
+    for filename in os.listdir(src):
+        src_path = os.path.join(src, filename)
+        dst_path = os.path.join(dst, filename)
+        if os.path.isfile(src_path):
+            shutil.copy(src_path, dst_path)
+        else:
+            copy_contents_from(src_path, dst_path)
+
+
 def main():
-    text = """\n\n\n# This is a heading\n\n\n\n\n\nThis is a paragraph of text. It has some **bold** and *italic* words inside of it.\n\n\n\n\n* This is a list item\n* This is another list item"""
-    print(markdown_to_blocks(text))
+    copy_contents_from("static", "public")
 
 
 main()

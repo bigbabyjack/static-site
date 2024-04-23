@@ -16,6 +16,19 @@ class HTMLTags(StrEnum):
     CODE = "code"
     LINK = "link"
     IMAGE = "image"
+    HEADING_1 = "h1"
+    HEADING_2 = "h2"
+    HEADING_3 = "h3"
+    HEADING_4 = "h4"
+    HEADING_5 = "h5"
+    HEADING_6 = "h6"
+    DIV = "div"
+    PARAGRAPH = "p"
+    ORDERED_LIST = "ol"
+    UNORDERED_LIST = "ul"
+    LIST_ITEM = "li"
+    PRE = "pre"
+    BLOCKQUOTE = "blockquote"
 
 
 class HTMLProps(StrEnum):
@@ -28,6 +41,7 @@ class MarkdownDelimiters(StrEnum):
     BOLD = "**"
     ITALIC = "*"
     CODE = "`"
+    HEADING = "#"
 
 
 class MarkdownBlockType(StrEnum):
@@ -40,8 +54,8 @@ class MarkdownBlockType(StrEnum):
 
 
 class MarkdownBlockRegexPattern(StrEnum):
-    HEADING = r"^#{1,6}$"
+    HEADING = r"^#{1,6}\s"
     CODE = r"^```$"
-    QUOTE = r"^>$"
-    UNORDERED_LIST = r"^[\*-]$"
-    ORDERED_LIST = r"^1\.$"
+    QUOTE = r"^>\s"
+    UNORDERED_LIST = r"^[\*-]\s"
+    ORDERED_LIST = r"^1\.\s"
