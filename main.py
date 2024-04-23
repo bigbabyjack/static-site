@@ -1,3 +1,6 @@
+import os
+import shutil
+
 from src.textnode import TextNode
 from src.htmlnode import LeafNode
 from src.constants import TextTypes, HTMLTags, HTMLProps, MarkdownDelimiters
@@ -10,9 +13,21 @@ from src.node_utils import (
 )
 
 
+def copy_contents_from(src: str, dst: str) -> None:
+    if not os.path.exists(dst):
+        os.mkdir(dst)
+
+    for filename in os.listdir(src):
+        src_path = os.path.join(src, filename)
+        dst_path = os.path.join(dst, filename)
+        if os.path.isfile(src_path):
+            shutil.copy(src_path, dst_path)
+        else:
+            copy_contents_from(src_path, dst_path)
+
+
 def main():
-    text = "1. this is an ordered list\n2. you can tell by how it is\n3. isn't that cool"
-    print(ol_block_to_html_node(text))
+    copy_contents_from("static", "public")
 
 
 main()

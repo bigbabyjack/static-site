@@ -6,6 +6,7 @@ from src.node_utils import (
     extract_markdown_images,
     extract_markdown_links,
     heading_block_to_html_node,
+    markdown_to_html_node,
     paragraph_block_to_html_node,
     split_nodes_delimiter,
     split_nodes_image,
@@ -262,13 +263,13 @@ class TestBlockToHTMLNode(unittest.TestCase):
     def test_block_to_html_node(self):
         block = "# This is a heading"
         self.assertEqual(
-            block_to_html_node(block, MarkdownBlockType.HEADING),
+            block_to_html_node(block),
             HTMLNode(tag=HTMLTags.HEADING_1, value="This is a heading"),
         )
 
         block = "1. this is an ordered list\n2. you can tell by how it is\n3. isn't that cool"
         self.assertEqual(
-            block_to_html_node(block, MarkdownBlockType.ORDERED_LIST),
+            block_to_html_node(block),
             HTMLNode(
                 tag=HTMLTags.ORDERED_LIST,
                 children=[
@@ -281,7 +282,7 @@ class TestBlockToHTMLNode(unittest.TestCase):
 
         block = "* this is an unordered list\n- you can tell by how it is\n* isn't that cool"
         self.assertEqual(
-            block_to_html_node(block, MarkdownBlockType.UNORDERED_LIST),
+            block_to_html_node(block),
             HTMLNode(
                 tag=HTMLTags.UNORDERED_LIST,
                 children=[
@@ -294,7 +295,7 @@ class TestBlockToHTMLNode(unittest.TestCase):
 
         block = "> this is a quote block\n> every line has\n> this arrow in front"
         self.assertEqual(
-            block_to_html_node(block, MarkdownBlockType.QUOTE),
+            block_to_html_node(block),
             HTMLNode(
                 tag=HTMLTags.BLOCKQUOTE,
                 value="this is a quote block\nevery line has\nthis arrow in front",
@@ -303,7 +304,7 @@ class TestBlockToHTMLNode(unittest.TestCase):
 
         block = "this is just some text"
         self.assertEqual(
-            block_to_html_node(block, MarkdownBlockType.PARAGRAPH),
+            block_to_html_node(block),
             HTMLNode(
                 tag=HTMLTags.PARAGRAPH,
                 value=block,
@@ -312,17 +313,35 @@ class TestBlockToHTMLNode(unittest.TestCase):
 
         block = "### this is a heading"
         self.assertEqual(
-            block_to_html_node(block, MarkdownBlockType.HEADING),
+            block_to_html_node(block),
             HTMLNode(tag="h3", value="this is a heading"),
         )
 
         block = "```\nthis is a code block\n```"
         self.assertEqual(
-            block_to_html_node(block, MarkdownBlockType.CODE),
+            block_to_html_node(block),
             HTMLNode(
                 tag=HTMLTags.PRE,
                 children=[
                     HTMLNode(tag="code", value="this is a code block"),
+                ],
+            ),
+        )
+
+
+class TestMarkdownToHTMLNode(unittest.TestCase):
+    def test_markdown_to_html_node(self):
+        text = """# This is the header\n\n## Secondary Header\n\n```\nCode block\n```"""
+        self.assertEqual(
+            markdown_to_html_node(text),
+            HTMLNode(
+                tag="div",
+                children=[
+                    HTMLNode(tag="h1", value="This is the header"),
+                    HTMLNode(tag="h2", value="Secondary Header"),
+                    HTMLNode(
+                        tag="pre", children=[HTMLNode(tag="code", value="Code block")]
+                    ),
                 ],
             ),
         )

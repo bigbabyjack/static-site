@@ -62,6 +62,7 @@ def split_nodes_delimiter(
         # if the node is not a text node, add as is
         if old_node.text_type != TextTypes.TEXT:
             new_nodes.append(old_node)
+            continue
         # if we have a text node
         else:
             # split the node text
@@ -246,7 +247,8 @@ def paragraph_block_to_html_node(block: str) -> HTMLNode:
     )
 
 
-def block_to_html_node(block: str, block_type: str) -> HTMLNode:
+def block_to_html_node(block: str) -> HTMLNode:
+    block_type = block_to_block_type(block)
     if block_type == MarkdownBlockType.QUOTE:
         return quote_block_to_html_node(block)
     if block_type == MarkdownBlockType.UNORDERED_LIST:
@@ -265,4 +267,9 @@ def block_to_html_node(block: str, block_type: str) -> HTMLNode:
 
 # TODO: Implement using helper functions
 def markdown_to_html_node(markdown: str) -> HTMLNode:
-    pass
+    blocks = markdown_to_blocks(markdown)
+    children = []
+    for block in blocks:
+        children.append(block_to_html_node(block))
+
+    return HTMLNode(tag="div", children=children)
