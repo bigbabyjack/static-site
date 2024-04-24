@@ -1,16 +1,7 @@
 import os
 import shutil
 
-from src.textnode import TextNode
-from src.htmlnode import LeafNode
-from src.constants import TextTypes, HTMLTags, HTMLProps, MarkdownDelimiters
-from src.node_utils import (
-    ol_block_to_html_node,
-    split_nodes_delimiter,
-    split_nodes_image,
-    text_to_textnodes,
-    markdown_to_blocks,
-)
+from src.node_utils import generate_pages_recursive
 
 
 def copy_contents_from(src: str, dst: str) -> None:
@@ -26,8 +17,22 @@ def copy_contents_from(src: str, dst: str) -> None:
             copy_contents_from(src_path, dst_path)
 
 
+dir_path_static = "./static"
+dir_path_public = "./public"
+dir_path_content = "./content"
+template_path = "./template.html"
+
+
 def main():
-    copy_contents_from("static", "public")
+    print("Deleting public directory...")
+    if os.path.exists(dir_path_public):
+        shutil.rmtree(dir_path_public)
+
+    print("Copying static files to public directory...")
+    copy_contents_from(dir_path_static, dir_path_public)
+
+    print("Generating content...")
+    generate_pages_recursive(dir_path_content, template_path, dir_path_public)
 
 
 main()

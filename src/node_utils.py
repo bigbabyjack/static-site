@@ -1,4 +1,6 @@
 import re
+from pathlib import Path
+import os
 from typing import Tuple
 
 from src.constants import (
@@ -10,11 +12,11 @@ from src.constants import (
     MarkdownBlockType,
 )
 from src.textnode import TextNode
-from src.htmlnode import LeafNode, HTMLNode
+from src.htmlnode import LeafNode, HTMLNode, ParentNode
 
 
 def text_node_to_html_node(text_node: TextNode) -> LeafNode:
-    if text_node.text_type in TextTypes:
+    if text_node.text_type not in TextTypes:
         raise Exception(f"TextNode of type {text_node.text_type} is not valid.")
 
     if text_node.text_type == TextTypes.BOLD:
@@ -190,18 +192,32 @@ def block_to_block_type(block: str) -> str:
             return MarkdownBlockType.PARAGRAPH
 
 
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    children = []
+    for text_node in text_nodes:
+        html_node = text_node_to_html_node(text_node)
+        children.append(html_node)
+    return children
+
+
 def quote_block_to_html_node(block: str) -> HTMLNode:
-    return HTMLNode(
-        tag=HTMLTags.BLOCKQUOTE,
-        value="\n".join(map(lambda x: x.lstrip(">").lstrip(), block.split("\n"))),
-    )
+    lines = block.split("\n")
+    new_lines = []
+    for line in lines:
+        if not line.startswith(">"):
+            raise ValueError("Invalid quote block")
+        new_lines.append(line.lstrip(">").strip())
+    content = " ".join(new_lines)
+    children = text_to_children(content)
+    return ParentNode("blockquote", children)
 
 
 def ul_block_to_html_node(block: str) -> HTMLNode:
-    return HTMLNode(
+    return ParentNode(
         tag=HTMLTags.UNORDERED_LIST,
         children=[
-            HTMLNode(tag=HTMLTags.LIST_ITEM, value=line)
+            LeafNode(tag=HTMLTags.LIST_ITEM, value=line)
             for line in map(
                 lambda x: x.lstrip("*").lstrip("-").lstrip(), block.split("\n")
             )
@@ -210,10 +226,10 @@ def ul_block_to_html_node(block: str) -> HTMLNode:
 
 
 def ol_block_to_html_node(block: str) -> HTMLNode:
-    return HTMLNode(
+    return ParentNode(
         tag=HTMLTags.ORDERED_LIST,
         children=[
-            HTMLNode(tag=HTMLTags.LIST_ITEM, value=line)
+            LeafNode(tag=HTMLTags.LIST_ITEM, value=line)
             for line in map(
                 lambda x: re.sub(r"^[0-9]+\.\s", "", x).lstrip(), block.split("\n")
             )
@@ -222,10 +238,10 @@ def ol_block_to_html_node(block: str) -> HTMLNode:
 
 
 def code_block_to_html_node(block: str) -> HTMLNode:
-    return HTMLNode(
+    return ParentNode(
         tag=HTMLTags.PRE,
         children=[
-            HTMLNode(
+            LeafNode(
                 tag=HTMLTags.CODE,
                 value=block.lstrip("```").rstrip("```").strip(),
             )
@@ -234,14 +250,14 @@ def code_block_to_html_node(block: str) -> HTMLNode:
 
 
 def heading_block_to_html_node(block: str) -> HTMLNode:
-    return HTMLNode(
+    return ParentNode(
         tag=f"h{len(re.findall(MarkdownBlockRegexPattern.HEADING, block)[0]) - 1}",
-        value=block.lstrip(MarkdownDelimiters.HEADING).lstrip(),
+        children=text_to_children(block.lstrip(MarkdownDelimiters.HEADING).lstrip()),
     )
 
 
 def paragraph_block_to_html_node(block: str) -> HTMLNode:
-    return HTMLNode(
+    return LeafNode(
         tag=HTMLTags.PARAGRAPH,
         value=block,
     )
@@ -265,11 +281,50 @@ def block_to_html_node(block: str) -> HTMLNode:
     raise ValueError(f"Invalid block type {block_type}")
 
 
-# TODO: Implement using helper functions
 def markdown_to_html_node(markdown: str) -> HTMLNode:
     blocks = markdown_to_blocks(markdown)
     children = []
     for block in blocks:
         children.append(block_to_html_node(block))
 
-    return HTMLNode(tag="div", children=children)
+    return ParentNode(tag="div", children=children)
+
+
+def extract_title(markdown: str) -> str:
+    for line in markdown.split("\n"):
+        if line.startswith("# "):
+            return line.strip("# ")
+
+    raise ValueError("Markdown has no h1 header!")
+
+
+def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    with open(from_path, "r") as f:
+        markdown = f.read()
+
+    with open(template_path, "r") as f:
+        template = f.read()
+
+    markdown_html = markdown_to_html_node(markdown).to_html()
+    title = extract_title(markdown)
+    template = template.replace("{{ Title }}", title)
+    template = template.replace("{{ Content }}", markdown_html)
+    dest_dir_path = os.path.dirname(dest_path)
+    if dest_dir_path != "":
+        os.makedirs(dest_dir_path, exist_ok=True)
+    with open(dest_path, "w") as f:
+        f.write(template)
+
+
+def generate_pages_recursive(
+    dir_path_content: str, template_path: str, dest_dir_path: str
+) -> None:
+    for filename in os.listdir(dir_path_content):
+        from_path = os.path.join(dir_path_content, filename)
+        dest_path = os.path.join(dest_dir_path, filename)
+        if os.path.isfile(from_path):
+            dest_path = Path(dest_path).with_suffix(".html")
+            generate_page(from_path, template_path, dest_path)
+        else:
+            generate_pages_recursive(from_path, template_path, dest_path)
